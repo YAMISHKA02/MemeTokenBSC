@@ -1,26 +1,9 @@
-/**
- *Submitted for verification at Etherscan.io on 2023-04-14
-*/
-
-// Sources flattened with hardhat v2.7.0 https://hardhat.org
-
-// File @openzeppelin/contracts/utils/Context.sol@v4.4.0
 
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.0 (utils/Context.sol)
 
 pragma solidity ^0.8.0;
 
-/**
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
 abstract contract Context {
     function _msgSender() internal view virtual returns (address) {
         return msg.sender;
@@ -39,18 +22,7 @@ abstract contract Context {
 
 pragma solidity ^0.8.0;
 
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
+
 abstract contract Ownable is Context {
     address private _owner;
 
@@ -235,31 +207,7 @@ pragma solidity ^0.8.0;
 
 
 
-/**
- * @dev Implementation of the {IERC20} interface.
- *
- * This implementation is agnostic to the way tokens are created. This means
- * that a supply mechanism has to be added in a derived contract using {_mint}.
- * For a generic mechanism see {ERC20PresetMinterPauser}.
- *
- * TIP: For a detailed writeup see our guide
- * https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226[How
- * to implement supply mechanisms].
- *
- * We have followed general OpenZeppelin Contracts guidelines: functions revert
- * instead returning `false` on failure. This behavior is nonetheless
- * conventional and does not conflict with the expectations of ERC20
- * applications.
- *
- * Additionally, an {Approval} event is emitted on calls to {transferFrom}.
- * This allows applications to reconstruct the allowance for all accounts just
- * by listening to said events. Other implementations of the EIP may not emit
- * these events, as it isn't required by the specification.
- *
- * Finally, the non-standard {decreaseAllowance} and {increaseAllowance}
- * functions have been added to mitigate the well-known issues around setting
- * allowances. See {IERC20-approve}.
- */
+
 contract ERC20 is Context, IERC20, IERC20Metadata {
     mapping(address => uint256) private _balances;
 
@@ -542,40 +490,14 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         emit Approval(owner, spender, amount);
     }
 
-    /**
-     * @dev Hook that is called before any transfer of tokens. This includes
-     * minting and burning.
-     *
-     * Calling conditions:
-     *
-     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
-     * will be transferred to `to`.
-     * - when `from` is zero, `amount` tokens will be minted for `to`.
-     * - when `to` is zero, `amount` of ``from``'s tokens will be burned.
-     * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
+
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 amount
+        uint amount
     ) internal virtual {}
 
-    /**
-     * @dev Hook that is called after any transfer of tokens. This includes
-     * minting and burning.
-     *
-     * Calling conditions:
-     *
-     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
-     * has been transferred to `to`.
-     * - when `from` is zero, `amount` tokens have been minted for `to`.
-     * - when `to` is zero, `amount` of ``from``'s tokens have been burned.
-     * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
+
     function _afterTokenTransfer(
         address from,
         address to,
@@ -584,50 +506,14 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 }
 
 
-// File contracts/PepeToken.sol
-
-
+// File contracts/PEPEPEToken.sol
 
 pragma solidity ^0.8.0;
 
 
-contract PepeToken is Ownable, ERC20 {
-    bool public limited;
-    uint256 public maxHoldingAmount;
-    uint256 public minHoldingAmount;
-    address public uniswapV2Pair;
-    mapping(address => bool) public blacklists;
-
-    constructor(uint256 _totalSupply) ERC20("Pepe", "PEPE") {
+contract PEPEPEToken is Ownable, ERC20 {
+    constructor(uint256 _totalSupply) ERC20("PEPEPE Meme token", "PEPEPE") {
         _mint(msg.sender, _totalSupply);
-    }
-
-    function blacklist(address _address, bool _isBlacklisting) external onlyOwner {
-        blacklists[_address] = _isBlacklisting;
-    }
-
-    function setRule(bool _limited, address _uniswapV2Pair, uint256 _maxHoldingAmount, uint256 _minHoldingAmount) external onlyOwner {
-        limited = _limited;
-        uniswapV2Pair = _uniswapV2Pair;
-        maxHoldingAmount = _maxHoldingAmount;
-        minHoldingAmount = _minHoldingAmount;
-    }
-
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) override internal virtual {
-        require(!blacklists[to] && !blacklists[from], "Blacklisted");
-
-        if (uniswapV2Pair == address(0)) {
-            require(from == owner() || to == owner(), "trading is not started");
-            return;
-        }
-
-        if (limited && from == uniswapV2Pair) {
-            require(super.balanceOf(to) + amount <= maxHoldingAmount && super.balanceOf(to) + amount >= minHoldingAmount, "Forbid");
-        }
     }
 
     function burn(uint256 value) external {

@@ -1,12 +1,13 @@
 import { ethers } from "hardhat";
 import {DeployFunction} from 'hardhat-deploy/types';
-import { network } from "hardhat"
+import { network,run } from "hardhat"
 import * as dotenv from "dotenv"
-import { PepeToken } from "../typechain-types";
+import { PEPEPEToken } from "../typechain-types";
 import { AddressLike } from "ethers";
 import { developmentChains, VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config";
+import { verify } from "../scripts/verify";
 
-dotenv.config({ path: '/Users/yamishka/Documents/Projects/MemeToken_v2/.env.data' })
+dotenv.config({ path: '/Users/yamishka/Documents/Projects/MemeToken_v2/data.env' })
 
 const TEAM = process.env.TEAM as AddressLike
 const TOKEN_OWNER = process.env.TOKEN_OWNER as AddressLike
@@ -15,7 +16,7 @@ const TOKEN_SUPPLY = ethers.toBigInt(process.env.TOKEN_SUPPLY as string) * 10n *
 const TEAM_SHARE = process.env.TEAM_SHARE as string
 
 
-async function transferTokensToOwner(TOKEN_OWNER:AddressLike,contract:PepeToken,sharePercent:number){
+async function transferTokensToOwner(TOKEN_OWNER:AddressLike,contract:PEPEPEToken,sharePercent:number){
   console.log('\n Transfering share to owner...')
   const supply = await contract.totalSupply()
   const toTransfer = (supply * BigInt(sharePercent)) / 1000n
@@ -23,7 +24,7 @@ async function transferTokensToOwner(TOKEN_OWNER:AddressLike,contract:PepeToken,
 
   console.log('Share transfered!\n')
 }
-async function transferTokensToTeam(TEAM:AddressLike,contract:PepeToken,sharePercent:number){
+async function transferTokensToTeam(TEAM:AddressLike,contract:PEPEPEToken,sharePercent:number){
   console.log('\n Transfering share to team...')
   const supply = await contract.totalSupply()
   const toTransfer = (supply * BigInt(sharePercent)) / 1000n
@@ -57,25 +58,32 @@ const deployFunction: DeployFunction = async ({ getNamedAccounts, deployments, g
   ? 1
   : VERIFICATION_BLOCK_CONFIRMATIONS
 
-  const contract = await deploy("PepeToken", {
+  const contract = await deploy("PEPEPEToken", {
     from: deployer.address,
     args: [TOKEN_SUPPLY],
     log: true,
     waitConfirmations: waitBlockConfirmations
   })
 
-  let TOKEN_CONTRACT = await ethers.getContractAt("PepeToken",contract.address) as PepeToken
-  
+  let TOKEN_CONTRACT = await ethers.getContractAt("PEPEPEToken",contract.address) as PEPEPEToken
+
+
   console.log("Successfully deployed!\n")
   console.log('[CONTRACT_ADDRESS]', await TOKEN_CONTRACT.getAddress())
 
-  
+
   await transferTokensToOwner(TOKEN_OWNER, TOKEN_CONTRACT, parseInt(TOKEN_OWNER_SHARE))
   /*
   await transferTokensToTeam(TEAM,TOKEN_CONTRACT,parseInt(TEAM_SHARE))
   */
   await TOKEN_CONTRACT.transferOwnership(TOKEN_OWNER)
+  
 
+  //Verify contract
+  await run(`verify:verify`, {
+    address: await TOKEN_CONTRACT.getAddress(),
+    constructorArguments: [TOKEN_SUPPLY],
+  });
 }
 
 export default deployFunction
